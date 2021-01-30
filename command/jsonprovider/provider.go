@@ -6,15 +6,9 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-// FormatVersion represents the version of the json format and will be
-// incremented for any change to this format that requires changes to a
-// consuming parser.
-const FormatVersion = "0.1"
-
 // providers is the top-level object returned when exporting provider schemas
 type providers struct {
-	FormatVersion string               `json:"format_version"`
-	Schemas       map[string]*Provider `json:"provider_schemas,omitempty"`
+	Schemas map[string]*Provider `json:"provider_schemas,omitempty"`
 }
 
 type Provider struct {
@@ -26,8 +20,7 @@ type Provider struct {
 func newProviders() *providers {
 	schemas := make(map[string]*Provider)
 	return &providers{
-		FormatVersion: FormatVersion,
-		Schemas:       schemas,
+		Schemas: schemas,
 	}
 }
 

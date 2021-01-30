@@ -32,13 +32,12 @@ func marshalAttribute(attr *configschema.Attribute) *attribute {
 	attrTy, _ := attr.Type.MarshalJSON()
 
 	return &attribute{
-		AttributeType:   attrTy,
-		Description:     attr.Description,
-		DescriptionKind: marshalStringKind(attr.DescriptionKind),
-		Required:        attr.Required,
-		Optional:        attr.Optional,
-		Computed:        attr.Computed,
-		Sensitive:       attr.Sensitive,
-		Deprecated:      attr.Deprecated,
+		AttributeType: attrTy,
+		Description:   attr.Description,
+		Required:      attr.Required,
+		Optional:      attr.Optional,
+		Computed:      attr.Computed,
+		Sensitive:     attr.Sensitive,
+		Deprecated:    attr.Deprecated,
 	}
 }
