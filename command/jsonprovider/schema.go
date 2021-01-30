@@ -5,7 +5,7 @@ import (
 )
 
 type schema struct {
-	Version uint64 `json:"version"`
+	Version uint64 `json:"version,omitempty"`
 	Block   *block `json:"block,omitempty"`
 }
 

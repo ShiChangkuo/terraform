@@ -52,9 +52,8 @@ func marshalBlock(configBlock *configschema.Block) *block {
 	}
 
 	ret := block{
-		Deprecated:      configBlock.Deprecated,
-		Description:     configBlock.Description,
-		DescriptionKind: marshalStringKind(configBlock.DescriptionKind),
+		Deprecated:  configBlock.Deprecated,
+		Description: configBlock.Description,
 	}
 
 	if len(configBlock.Attributes) > 0 {
