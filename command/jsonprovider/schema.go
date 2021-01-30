@@ -36,3 +36,20 @@ func marshalSchemas(blocks map[string]*configschema.Block, rVersions map[string]
 	}
 	return ret
 }
+
+func marshalSchemaByName(blocks map[string]*configschema.Block, rVersions map[string]uint64, name string) map[string]*schema {
+	if blocks == nil {
+		return map[string]*schema{}
+	}
+	ret := make(map[string]*schema, len(blocks))
+	for k, v := range blocks {
+		if k == name {
+			ret[k] = marshalSchema(v)
+			version, ok := rVersions[k]
+			if ok {
+				ret[k].Version = version
+			}
+		}
+	}
+	return ret
+}

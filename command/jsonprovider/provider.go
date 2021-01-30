@@ -6,6 +6,12 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+const (
+	TypeProvider int = iota
+	TypeResource
+	TypeData
+)
+
 // providers is the top-level object returned when exporting provider schemas
 type providers struct {
 	Schemas map[string]*Provider `json:"provider_schemas,omitempty"`
@@ -24,14 +30,22 @@ func newProviders() *providers {
 	}
 }
 
-func Marshal(s *terraform.Schemas) ([]byte, error) {
+func Marshal(s *terraform.Schemas, sourceType int, name string) ([]byte, error) {
 	providers := newProviders()
 
 	for k, v := range s.Providers {
-		providers.Schemas[k.String()] = marshalProvider(v)
+		switch sourceType {
+		case TypeResource:
+			providers.Schemas[k.String()] = marshalResource(v, name)
+		case TypeData:
+			providers.Schemas[k.String()] = marshalDataSource(v, name)
+		default:
+			providers.Schemas[k.String()] = marshalProvider(v)
+		}
+
 	}
 
-	ret, err := json.Marshal(providers)
+	ret, err := json.MarshalIndent(providers, "", "\t")
 	return ret, err
 }
 
@@ -41,23 +55,50 @@ func marshalProvider(tps *terraform.ProviderSchema) *Provider {
 	}
 
 	var ps *schema
-	var rs, ds map[string]*schema
-
 	if tps.Provider != nil {
 		ps = marshalSchema(tps.Provider)
 	}
 
-	if tps.ResourceTypes != nil {
-		rs = marshalSchemas(tps.ResourceTypes, tps.ResourceTypeSchemaVersions)
+	return &Provider{
+		Provider: ps,
+	}
+}
+
+func marshalResource(tps *terraform.ProviderSchema, key string) *Provider {
+	if tps == nil {
+		return &Provider{}
 	}
 
-	if tps.DataSources != nil {
-		ds = marshalSchemas(tps.DataSources, tps.ResourceTypeSchemaVersions)
+	var rs map[string]*schema
+
+	if tps.ResourceTypes != nil {
+		if key == "all" {
+			rs = marshalSchemas(tps.ResourceTypes, tps.ResourceTypeSchemaVersions)
+		} else {
+			rs = marshalSchemaByName(tps.ResourceTypes, tps.ResourceTypeSchemaVersions, key)
+		}
 	}
 
 	return &Provider{
-		Provider:          ps,
-		ResourceSchemas:   rs,
+		ResourceSchemas: rs,
+	}
+}
+
+func marshalDataSource(tps *terraform.ProviderSchema, key string) *Provider {
+	if tps == nil {
+		return &Provider{}
+	}
+
+	var ds map[string]*schema
+	if tps.DataSources != nil {
+		if key == "all" {
+			ds = marshalSchemas(tps.DataSources, tps.ResourceTypeSchemaVersions)
+		} else {
+			ds = marshalSchemaByName(tps.DataSources, tps.ResourceTypeSchemaVersions, key)
+		}
+	}
+
+	return &Provider{
 		DataSourceSchemas: ds,
 	}
 }

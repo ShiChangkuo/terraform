@@ -26,8 +26,13 @@ func (c *ProvidersSchemaCommand) Synopsis() string {
 func (c *ProvidersSchemaCommand) Run(args []string) int {
 	args = c.Meta.process(args)
 	cmdFlags := c.Meta.defaultFlagSet("providers schema")
-	var jsonOutput bool
-	cmdFlags.BoolVar(&jsonOutput, "json", false, "produce JSON output")
+
+	var sourceType int
+	var sourceName string
+	var isResource, isData bool
+	cmdFlags.StringVar(&sourceName, "name", "", "resource or data source name")
+	cmdFlags.BoolVar(&isResource, "r", false, "the input name is a resource")
+	cmdFlags.BoolVar(&isData, "d", false, "the input name is a data source")
 
 	cmdFlags.Usage = func() { c.Ui.Error(c.Help()) }
 	if err := cmdFlags.Parse(args); err != nil {
@@ -35,11 +40,20 @@ func (c *ProvidersSchemaCommand) Run(args []string) int {
 		return 1
 	}
 
-	if !jsonOutput {
-		c.Ui.Error(
-			"The `terraform providers schema` command requires the `-json` flag.\n")
-		cmdFlags.Usage()
-		return 1
+	if isResource {
+		sourceType = jsonprovider.TypeResource
+	} else if isData {
+		sourceType = jsonprovider.TypeData
+	} else {
+		sourceType = jsonprovider.TypeProvider
+	}
+
+	if isResource || isData {
+		if sourceName == "" {
+			c.Ui.Error("The `terraform providers schema` command requires the `-name` flag.\n")
+			cmdFlags.Usage()
+			return 1
+		}
 	}
 
 	// Check for user-supplied plugin path
@@ -97,7 +111,7 @@ func (c *ProvidersSchemaCommand) Run(args []string) int {
 	}
 
 	schemas := ctx.Schemas()
-	jsonSchemas, err := jsonprovider.Marshal(schemas)
+	jsonSchemas, err := jsonprovider.Marshal(schemas, sourceType, sourceName)
 	if err != nil {
 		c.Ui.Error(fmt.Sprintf("Failed to marshal provider schemas to json: %s", err))
 		return 1
@@ -108,8 +122,14 @@ func (c *ProvidersSchemaCommand) Run(args []string) int {
 }
 
 const providersSchemaCommandHelp = `
-Usage: terraform providers schema -json
+Usage: terraform providers schema [-r] [-d] [-name=resource_name]
 
   Prints out a json representation of the schemas for all providers used 
   in the current configuration.
+
+Options:
+
+  -r			specifies the input name is a resource.
+  -d			specifies the input name is a data source.
+  -name=resource_name	specifies the resource or data source name. "all" will print all resources or data sources.
 `
