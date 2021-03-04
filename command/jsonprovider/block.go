@@ -67,12 +67,17 @@ func marshalBlock(configBlock *configschema.Block) *block {
 		attrs := make(map[string]*attribute, len(configBlock.Attributes))
 		for k, attr := range configBlock.Attributes {
 			if !attr.Deprecated {
+				if k == "id" || k == "region" || k == "tenant_id" {
+					attr.Optional = false
+				}
 				attrs[k] = marshalAttribute(attr)
 			}
 		}
 		ret.Attributes = attrs
 	}
 
+	// discard "timeouts" block
+	delete(configBlock.BlockTypes, "timeouts")
 	if len(configBlock.BlockTypes) > 0 {
 		blockTypes := make(map[string]*blockType, len(configBlock.BlockTypes))
 		for k, bt := range configBlock.BlockTypes {

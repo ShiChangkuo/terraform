@@ -2,6 +2,7 @@ package jsonprovider
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -34,15 +35,19 @@ func Marshal(s *terraform.Schemas, sourceType int, name string) ([]byte, error) 
 	providers := newProviders()
 
 	for k, v := range s.Providers {
-		switch sourceType {
-		case TypeResource:
-			providers.Schemas[k.String()] = marshalResource(v, name)
-		case TypeData:
-			providers.Schemas[k.String()] = marshalDataSource(v, name)
-		default:
-			providers.Schemas[k.String()] = marshalProvider(v)
+		provider := k.String()
+		if strings.HasPrefix(provider, "local-registry/") {
+			provider = provider[len("local-registry/"):]
 		}
 
+		switch sourceType {
+		case TypeResource:
+			providers.Schemas[provider] = marshalResource(v, name)
+		case TypeData:
+			providers.Schemas[provider] = marshalDataSource(v, name)
+		default:
+			providers.Schemas[provider] = marshalProvider(v)
+		}
 	}
 
 	ret, err := json.MarshalIndent(providers, "", "  ")

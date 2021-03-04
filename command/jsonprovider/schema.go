@@ -41,13 +41,19 @@ var serviceMap = map[string]string{
 }
 
 var resourceMap = map[string]string{
-	"compute":          "ECS",
-	"networking":       "VPC",
-	"networking_vip":   "VPC",
-	"vpc_peering":      "VPC",
-	"lb":               "ELB",
-	"rds_read_replica": "RDS",
-	"api_gateway":      "APIG",
+	"compute":             "ECS",
+	"networking":          "VPC",
+	"networking_vip":      "VPC",
+	"networking_secgroup": "VPC",
+	"vpc_peering":         "VPC",
+	"lb":                  "ELB",
+	"rds_read_replica":    "RDS",
+	"api_gateway":         "APIG",
+	"nat_dnat":            "NAT",
+	"nat_snat":            "NAT",
+	"obs_bucket":          "OBS",
+	"sfs_access":          "SFS",
+	"sfs_file":            "SFS",
 }
 
 type schema struct {
