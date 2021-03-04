@@ -23,8 +23,13 @@ func marshalBlockTypes(nestedBlock *configschema.NestedBlock) *blockType {
 	if nestedBlock == nil {
 		return &blockType{}
 	}
+	block := marshalBlock(&nestedBlock.Block)
+	if block == nil {
+		return nil
+	}
+
 	ret := &blockType{
-		Block:    marshalBlock(&nestedBlock.Block),
+		Block:    block,
 		MinItems: uint64(nestedBlock.MinItems),
 		MaxItems: uint64(nestedBlock.MaxItems),
 	}
@@ -50,16 +55,20 @@ func marshalBlock(configBlock *configschema.Block) *block {
 	if configBlock == nil {
 		return &block{}
 	}
+	if configBlock.Deprecated {
+		return nil
+	}
 
 	ret := block{
-		Deprecated:  configBlock.Deprecated,
 		Description: configBlock.Description,
 	}
 
 	if len(configBlock.Attributes) > 0 {
 		attrs := make(map[string]*attribute, len(configBlock.Attributes))
 		for k, attr := range configBlock.Attributes {
-			attrs[k] = marshalAttribute(attr)
+			if !attr.Deprecated {
+				attrs[k] = marshalAttribute(attr)
+			}
 		}
 		ret.Attributes = attrs
 	}
@@ -67,7 +76,9 @@ func marshalBlock(configBlock *configschema.Block) *block {
 	if len(configBlock.BlockTypes) > 0 {
 		blockTypes := make(map[string]*blockType, len(configBlock.BlockTypes))
 		for k, bt := range configBlock.BlockTypes {
-			blockTypes[k] = marshalBlockTypes(bt)
+			if blockType := marshalBlockTypes(bt); blockType != nil {
+				blockTypes[k] = blockType
+			}
 		}
 		ret.BlockTypes = blockTypes
 	}
