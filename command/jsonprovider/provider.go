@@ -45,7 +45,7 @@ func Marshal(s *terraform.Schemas, sourceType int, name string) ([]byte, error) 
 
 	}
 
-	ret, err := json.MarshalIndent(providers, "", "\t")
+	ret, err := json.MarshalIndent(providers, "", "  ")
 	return ret, err
 }
 
