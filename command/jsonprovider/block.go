@@ -66,8 +66,12 @@ func marshalBlock(configBlock *configschema.Block) *block {
 	if len(configBlock.Attributes) > 0 {
 		attrs := make(map[string]*attribute, len(configBlock.Attributes))
 		for k, attr := range configBlock.Attributes {
+			if k == "tenant_id" || k == "admin_state_up" || k == "shared" {
+				continue
+			}
+
 			if !attr.Deprecated {
-				if k == "id" || k == "region" || k == "tenant_id" {
+				if k == "id" || k == "region" {
 					attr.Optional = false
 				}
 				attrs[k] = marshalAttribute(attr)
